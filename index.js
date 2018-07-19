@@ -1,2 +1,2 @@
-const Model = require('./src/context-permissions')
+const Model = require('./src/model')
 exports.Model = Model
