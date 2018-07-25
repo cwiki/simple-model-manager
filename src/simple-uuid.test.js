@@ -14,7 +14,6 @@ test("encode accepts array syntax", () => {
 
 test("encode can encode and decode many values", () => {
     const code = ['user', 32, 'haru', 'bridge', 44]
-    expect(
-        sid.decode(sid.encode(code))
-        ).toEqual(code)
+    expect(sid.decode(sid.encode(code))).toEqual(code)
 })
+

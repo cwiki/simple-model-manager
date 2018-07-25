@@ -1,2 +1,2 @@
-const Model = require('./src/model')
-exports.Model = Model
+const mgm = require('./index')
+exports.MGM = mgm

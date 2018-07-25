@@ -22,6 +22,8 @@
   },
   "homepage": "https://github.com/cwiki/mysql-generated-models#readme",
   "dependencies": {
+    "faker": "^4.1.0",
+    "murmurhash": "0.0.2",
     "mysql2": "^1.5.3"
   },
   "devDependencies": {

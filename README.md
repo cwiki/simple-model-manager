@@ -28,30 +28,29 @@ const config = {
     }
 }
 
-const conn =  mysql.createConnection({host:'localhost', user: 'root', database: 'test'});
+const conn =  mysql.createConnection({host:'localhost', user: 'root', database: 'test'})
 
 const interface = new MGM.Interface({conn, config})
 
 // Lazy load object
-let UUID = 'user.32'
-let user32 = interface.get(UUID)
-let UUID = 'user.32'
-let user32 = interface.get(UUID)
+let user32 = interface.get('dXNlcg==.MzI=') // UID
 
-
-// Inject Data, if no id saving object creates a new object
-let user32 = interface.inject("user", {
+// Inject Data
+let user32 = interface.get({
     id: 32,
     name: "riley"
-})
-
-let user32 = interface.factory("user", {
-    id: 32,
-    name: "riley"
-    // generates additional fields
-})
+}, "user")
 ```
+There is no ORM like searching in MysqlGM. Instead we prefer to use that the user perform a traditional MYSQL query 
+then pass those results into a model interface.
 
+Users can save interface models. `.save(), .delete()`
+
+All objects belong to `MGM` and gives the user back a interface to it's data. 
+MGM keeps track of object's states and change to best make updates and to allow for caching data.
+
+`MGM.commit()` Changes are saved until the user decides to "COMMIT" the changes. Then the ORM does it's best to 
+resolve the changes responsably
 
 ## Testing
 This project uses JEST `npm test`
