@@ -56,10 +56,14 @@ class ModelManager {
             meta = Object.assign({}, args[1])
         }
 
-        this.addNullKey(source, meta)
-        this.addPropFields(source, meta)
-        if (meta) return meta
-        throw TypeError('Unrecognized type in get call')
+        if (typeof(meta) === 'object') {
+            this._modelFieldFilter(source, meta)
+            this.addNullKey(source, meta)
+            this.addPropFields(source, meta)
+            return meta
+        } else {
+            return null
+        }
     }
 
     /**
@@ -98,6 +102,7 @@ class ModelManager {
             if (!updates.get(source)) updates.set(source, [])
             const state = this._getState(model)
             if (model.__state !== state) {
+                this._modelFieldFilter(source, model)
                 updates.get(source).push({ source, id, model })
                 // Updates state to the newest version
                 model.__state = state
@@ -106,6 +111,19 @@ class ModelManager {
         updates.forEach(model => {
             this.storage.save(...model)
         })
+    }
+
+    /**
+     * Removes unregistered fields from a model
+     * @param {*} meta 
+     */
+    _modelFieldFilter(source, meta) {
+        const map = this.registry.get(source)
+        for (let ob in meta) {
+            if (ob[0] !== '_' && map[ob] === undefined){
+                delete meta[ob]
+            }
+        }
     }
 
     /**

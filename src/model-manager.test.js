@@ -39,50 +39,53 @@ beforeEach(() => {
 
 describe('get', () => {
     test('can get/retrieve a user', () => {
+        mm.register(UserMapping)
         cap.je.mockReturnValue('haiku')
         mm.get('user', 1)
-        mm.register(UserMapping)
         expect(cap.je.mock.calls[0][0]).toEqual({ source: 'user', key: 1, fields: undefined })
     })
 
     test('can get/retrieve a user from UID', () => {
+        mm.register(UserMapping)
         cap.je.mockReturnValue('haiku')
         mm.get('dXNlcg==.MQ==')
-        mm.register(UserMapping)
         expect(cap.je.mock.calls[0][0]).toEqual({ source: 'user', key: 1, fields: undefined })
     })
 
 
     test('can get/retrieve a user with fields', () => {
+        mm.register(UserMapping)
         cap.je.mockReturnValue('haiku')
         mm.get('user', 1, ['cake', 'muffins'])
-        mm.register(UserMapping)
         expect(cap.je.mock.calls[0][0]).toEqual({ source: 'user', key: 1, fields: ['cake', 'muffins'] })
     })
 
     test('can get/retrieve a user from UID with fields', () => {
+        mm.register(UserMapping)
         cap.je.mockReturnValue('haiku')
         mm.get('dXNlcg==.MQ==', ['cake', 'muffins'])
-        mm.register(UserMapping)
         expect(cap.je.mock.calls[0][0]).toEqual({ source: 'user', key: 1, fields: ['cake', 'muffins'] })
     })
 
     test('can create a object from meta data', () => {
-        cap.je.mockReturnValue('haiku')
-        let newUser = { name: 'charlie', age: '32' }
         mm.register(UserMapping)
+        cap.je.mockReturnValue('haiku')
+        let newUser = { name: 'charlie'}
         expect(mm.get('user', newUser))
             .toEqual(Object.assign({ __uuid: 'dXNlcg==', __state: 2991775931, id: null }, newUser))
     })
     test('can create a uid from target config primary key', () => {
-        cap.je.mockReturnValue('haiku')
-        let newStarfish = { name: 'patrick', age: '32', special_id: 44 }
         const StarfishMapping = Object.assign({}, mapping)
         StarfishMapping.__table = 'starfish'
         StarfishMapping.__primary = 'special_id'
+        StarfishMapping.special_id = [String, 11, false]
         mm.register(StarfishMapping)
+        cap.je.mockReturnValue('haiku')
+        let newStarfish = { name: 'patrick', special_id: 44 }
         expect(mm.get('starfish', newStarfish).__uuid).toEqual('c3RhcmZpc2g=.NDQ=')
     })
+
+    // todo add test no result return null
 })
 
 
@@ -92,7 +95,7 @@ describe('register', () => {
         expect(mm.registry.get('order')).toEqual(mapping)
     })
 
-    test('adds a multiple mappings', () => {
+    test('adds multiple mappings', () => {
         const mapping2 = Object.assign({}, mapping)
         mapping2.__table = 'swordfish'
         mm.register(mapping, mapping2)
@@ -125,6 +128,16 @@ describe('save', () => {
         user1 = mm.get('user', factory.user())
         user1.name += '.change' // forces update
         mm.save(user1)
+        expect(cap.je.mock.calls[0][0]).toEqual([{ id: user1.id, source: 'user', model: user1 }])
+    })
+
+    test('a models fields not listed in register are removed', () => {
+        cap.je.mockReturnValue('haiku')
+        mm.register(UserMapping)
+        user1 = mm.get('user', factory.user())
+        const userMod = Object.assign({}, user1)
+        userMod.badField = 'bad'
+        mm.save(userMod)
         expect(cap.je.mock.calls[0][0]).toEqual([{ id: user1.id, source: 'user', model: user1 }])
     })
 
