@@ -72,7 +72,7 @@ describe('get', () => {
         cap.je.mockReturnValue('haiku')
         let newUser = { name: 'charlie'}
         expect(mm.get('user', newUser))
-            .toEqual(Object.assign({ __uuid: 'dXNlcg==', __state: 2991775931, id: null }, newUser))
+            .toEqual(Object.assign({ __uuid: 'dXNlcg==', __state: 3820375274, id: null }, newUser))
     })
     test('can create a uid from target config primary key', () => {
         const StarfishMapping = Object.assign({}, mapping)
@@ -138,7 +138,7 @@ describe('save', () => {
         const userMod = Object.assign({}, user1)
         userMod.badField = 'bad'
         mm.save(userMod)
-        expect(cap.je.mock.calls[0][0]).toEqual([{ id: user1.id, source: 'user', model: user1 }])
+        expect(userMod.badField).toEqual(undefined)
     })
 
     test('multiple models can be saved to the respective source', () => {

@@ -98,15 +98,19 @@ class ModelManager {
         // model validation
         models.forEach(model => {
             let [source, id] = SimpleUUID.decode(model.__uuid)
+            this._modelFieldFilter(source, model)
+
             if (!id) id = null
             if (!updates.get(source)) updates.set(source, [])
+
             const state = this._getState(model)
+
             if (model.__state !== state) {
-                this._modelFieldFilter(source, model)
                 updates.get(source).push({ source, id, model })
                 // Updates state to the newest version
                 model.__state = state
             }
+
         })
         updates.forEach(model => {
             this.storage.save(...model)
