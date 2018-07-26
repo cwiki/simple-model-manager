@@ -85,6 +85,11 @@ describe('get', () => {
         expect(mm.get('starfish', newStarfish).__uuid).toEqual('c3RhcmZpc2g=.NDQ=')
     })
 
+    test('empty lookup returns null', () => {
+        mm.register(UserMapping)
+        cap.je.mockReturnValue(undefined)
+        expect(mm.get('user', 1)).toBeNull()
+    })
     // todo add test no result return null
 })
 
