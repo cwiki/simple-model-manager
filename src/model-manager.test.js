@@ -45,7 +45,7 @@ describe('get', () => {
         expect(cap.je.mock.calls[0][0]).toEqual({ source: 'user', key: 1, fields: undefined })
     })
 
-    test('can get/retrieve a user from UID', () => {
+    test('can get/retrieve a user from UUID', () => {
         mm.register(UserMapping)
         cap.je.mockReturnValue('haiku')
         mm.get('dXNlcg==.MQ==')
@@ -60,7 +60,7 @@ describe('get', () => {
         expect(cap.je.mock.calls[0][0]).toEqual({ source: 'user', key: 1, fields: ['cake', 'muffins'] })
     })
 
-    test('can get/retrieve a user from UID with fields', () => {
+    test('can get/retrieve a user from UUID with fields', () => {
         mm.register(UserMapping)
         cap.je.mockReturnValue('haiku')
         mm.get('dXNlcg==.MQ==', ['cake', 'muffins'])
@@ -76,7 +76,7 @@ describe('get', () => {
         expect(user1).toEqual(Object.assign({ __uuid: 'dXNlcg==', __state: 3820375274, id: null }, newUser))
     })
 
-    test('can create a uid from target config primary key', () => {
+    test('can create a UUID from target config primary key', () => {
         const StarfishMapping = Object.assign({}, mapping)
         StarfishMapping.__table = 'starfish'
         StarfishMapping.__primary = 'special_id'

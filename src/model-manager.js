@@ -26,7 +26,7 @@ class ModelManager {
      * converts args into model request.
      * Adds both UID and State stamps
      * @param {*} args 
-     * @return {*}}
+     * @return {}}
      */
     async get(...args) {
         if (!this.storage.get) return

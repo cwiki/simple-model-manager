@@ -1,4 +1,4 @@
-# Mysql Generated Models
+# Simple Model Manager
 A SQL first orm that emphesises simplicity and testing.  
 Instead of managing the database MysqlGM attempts to examine the database and create base models to use with 
 your existing data. Instead of writing how these objects are going to talk to eachother a user gives the model MYSQL data.
@@ -6,9 +6,9 @@ your existing data. Instead of writing how these objects are going to talk to ea
 ### How it works
 
 ## Getting Started
-Require the generated models interface
+Require the model manager interface
 ```js
-const MGM = require('myslq-generated-models')
+const SimpleModel = require('simple-model-manager')
 const mysql2 = require('mysql2/promise')
 
 // has the database configuration
@@ -30,7 +30,7 @@ const config = {
 
 const conn =  mysql.createConnection({host:'localhost', user: 'root', database: 'test'})
 
-const interface = new MGM.Interface({conn, config})
+const interface = new SimpleModel.Interface({conn, config})
 
 // Lazy load object
 let user32 = interface.get('dXNlcg==.MzI=') // UID
@@ -46,10 +46,10 @@ then pass those results into a model interface.
 
 Users can save interface models. `.save(), .delete()`
 
-All objects belong to `MGM` and gives the user back a interface to it's data. 
-MGM keeps track of object's states and change to best make updates and to allow for caching data.
+All objects belong to `SimpleModel` and gives the user back a interface to it's data. 
+SimpleModel keeps track of object's states and change to best make updates and to allow for caching data.
 
-`MGM.commit()` Changes are saved until the user decides to "COMMIT" the changes. Then the ORM does it's best to 
+`SimpleModel.commit()` Changes are saved until the user decides to "COMMIT" the changes. Then the ORM does it's best to 
 resolve the changes responsably
 
 ## Testing
