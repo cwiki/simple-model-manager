@@ -27,7 +27,7 @@ class ModelManager {
      * Adds both UID and State stamps
      * @param {*} args 
      */
-    get(...args) {
+    async get(...args) {
         if (!this.storage.get) return
 
         let source, key, meta, fields
@@ -38,7 +38,11 @@ class ModelManager {
                 fields = args[1]
             }
             [source, key] = SimpleUUID.decode(args[0])
-            meta = this.storage.get && this.storage.get({ source, key, fields })
+            try {
+                meta = this.storage.get && await this.storage.get({ source, key, fields })
+            } catch (err) {
+                return err
+            }
         }
 
         // is key based
@@ -47,7 +51,11 @@ class ModelManager {
                 fields = args[2]
             }
             [source, key] = args
-            meta = this.storage.get && this.storage.get({ source, key, fields })
+            try {
+                meta = this.storage.get && await this.storage.get({ source, key, fields })
+            } catch (err) {
+                return err
+            }
         }
 
         // is meta based
@@ -56,7 +64,7 @@ class ModelManager {
             meta = Object.assign({}, args[1])
         }
 
-        if (typeof(meta) === 'object') {
+        if (typeof (meta) === 'object') {
             this._modelFieldFilter(source, meta)
             this.addNullKey(source, meta)
             this.addPropFields(source, meta)
@@ -70,7 +78,7 @@ class ModelManager {
      * Deletes models
      * @param {*} models 
      */
-    delete(...models) {
+    async delete(...models) {
         if (!this.storage.delete) return
         this.storage.delete(...models.map(model => {
             let [source, id] = SimpleUUID.decode(model.__uuid)
@@ -90,31 +98,33 @@ class ModelManager {
      * their respective source sets
      * @param {*} models 
      */
-    save(...models) {
+    async save(...models) {
+        let finalArray = []
+        let updates = new Map()
+
         if (!this.storage.save) return
 
-        let updates = new Map()
 
         // model validation
         models.forEach(model => {
             let [source, id] = SimpleUUID.decode(model.__uuid)
             this._modelFieldFilter(source, model)
-
             if (!id) id = null
-            if (!updates.get(source)) updates.set(source, [])
 
             const state = this._getState(model)
 
             if (model.__state !== state) {
+                if (!updates.get(source)) updates.set(source, [])
                 updates.get(source).push({ source, id, model })
                 // Updates state to the newest version
                 model.__state = state
             }
+        })
 
+        updates.forEach((model) => {
+            finalArray.push(this.storage.save(...model))
         })
-        updates.forEach(model => {
-            this.storage.save(...model)
-        })
+        return finalArray
     }
 
     /**
@@ -124,7 +134,7 @@ class ModelManager {
     _modelFieldFilter(source, meta) {
         const map = this.registry.get(source)
         for (let ob in meta) {
-            if (ob[0] !== '_' && map[ob] === undefined){
+            if (ob[0] !== '_' && map[ob] === undefined) {
                 delete meta[ob]
             }
         }

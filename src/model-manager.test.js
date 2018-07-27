@@ -70,10 +70,14 @@ describe('get', () => {
     test('can create a object from meta data', () => {
         mm.register(UserMapping)
         cap.je.mockReturnValue('haiku')
-        let newUser = { name: 'charlie'}
-        expect(mm.get('user', newUser))
-            .toEqual(Object.assign({ __uuid: 'dXNlcg==', __state: 3820375274, id: null }, newUser))
+        let newUser = { name: 'charlie' }
+        mm.get('user', newUser)
+            .catch(console.error)
+            .then(data => {
+                expect(data).toEqual(Object.assign({ __uuid: 'dXNlcg==', __state: 3820375274, id: null }, newUser))
+            })
     })
+
     test('can create a uid from target config primary key', () => {
         const StarfishMapping = Object.assign({}, mapping)
         StarfishMapping.__table = 'starfish'
@@ -82,15 +86,22 @@ describe('get', () => {
         mm.register(StarfishMapping)
         cap.je.mockReturnValue('haiku')
         let newStarfish = { name: 'patrick', special_id: 44 }
-        expect(mm.get('starfish', newStarfish).__uuid).toEqual('c3RhcmZpc2g=.NDQ=')
+        mm.get('starfish', newStarfish)
+            .catch(console.error)
+            .then(response => {
+                expect(response.__uuid).toEqual('c3RhcmZpc2g=.NDQ=')
+            })
     })
 
     test('empty lookup returns null', () => {
         mm.register(UserMapping)
         cap.je.mockReturnValue(undefined)
-        expect(mm.get('user', 1)).toBeNull()
+        mm.get('user', 1)
+            .catch(console.error)
+            .then(response => {
+                expect(response).toBeNull()
+            })
     })
-    // todo add test no result return null
 })
 
 
@@ -128,48 +139,66 @@ describe('register', () => {
 
 describe('save', () => {
     test('a model can be saved to the respective source', () => {
+        expect.assertions(1)
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping)
-        user1 = mm.get('user', factory.user())
-        user1.name += '.change' // forces update
-        mm.save(user1)
-        expect(cap.je.mock.calls[0][0]).toEqual([{ id: user1.id, source: 'user', model: user1 }])
+        mm.get('user', factory.user())
+            .catch(console.error)
+            .then(user1 => {
+                user1.name += '.change' // forces update
+                mm.save(user1)
+                expect(cap.je.mock.calls[0][0]).toEqual([{ id: user1.id, source: 'user', model: user1 }])
+            })
     })
 
     test('a models fields not listed in register are removed', () => {
-        cap.je.mockReturnValue('haiku')
+        expect.assertions(1)
+        cap.je.mockReturnValue(Promise.resolve('haiku'))
         mm.register(UserMapping)
-        user1 = mm.get('user', factory.user())
-        const userMod = Object.assign({}, user1)
-        userMod.badField = 'bad'
-        mm.save(userMod)
-        expect(userMod.badField).toEqual(undefined)
+        mm.get('user', factory.user())
+            .catch(console.error)
+            .then(user1 => {
+                const userMod = Object.assign({}, user1)
+                userMod.badField = 'bad'
+                mm.save(userMod).catch(console.error)
+                expect(userMod.badField).toEqual(undefined)
+            })
     })
 
-    test('multiple models can be saved to the respective source', () => {
+    test('multiple models can be saved to the respective source', async () => {
+        expect.assertions(1)
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping)
-        user1 = mm.get('user', factory.user())
-        user2 = mm.get('user', factory.user())
+        let user1 = await mm.get('user', factory.user())
+            .catch(console.error)
+        let user2 = await mm.get('user', factory.user())
+            .catch(console.error)
         user1.name += '.change' // forces update
         user2.name += '.change' // forces update
-        mm.save(user1, user2)
-        expect(cap.je.mock.calls[0][0])
+        await mm.save(user1, user2)
+            .catch(console.error)
+        await expect(cap.je.mock.calls[0][0])
             .toEqual([{ id: user1.id, source: 'user', model: user1 },
             { id: user2.id, source: 'user', model: user2 }])
     })
 
-    test('multiple models of different types can be saved to the respective source', () => {
+    test('multiple models of different types can be saved to the respective source', async () => {
+        expect.assertions(1)
+        let user1, user2, order
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping, OrderMapping)
-        user1 = mm.get('user', factory.user())
-        user2 = mm.get('user', factory.user())
-        order = mm.get('order', factory.order())
+        user1 = await mm.get('user', factory.user())
+            .catch(console.error)
+        user2 = await mm.get('user', factory.user())
+            .catch(console.error)
+        order = await mm.get('order', factory.order())
+            .catch(console.error)
         user1.name += '.change' // forces update
         user2.name += '.change' // forces update
         order.ticket += 1 // forces update
-        mm.save(user1, user2, order)
-        expect(cap.je.mock.calls)
+        await mm.save(user1, user2, order)
+            .catch(console.error)
+        await expect(cap.je.mock.calls)
             .toEqual(
                 [
                     [[{ id: user1.id, source: 'user', model: user1 },
@@ -179,57 +208,78 @@ describe('save', () => {
             )
     })
 
-    test('saving a object only occrus if the source has not changed', () => {
+    test('saving a object only occrus if the source has not changed', async () => {
+        expect.assertions(1)
+        let user1, user2
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping)
-        user1 = mm.get('user', factory.user())
-        user2 = mm.get('user', factory.user())
+        user1 = await mm.get('user', factory.user())
+            .catch(console.error)
+        user2 = await mm.get('user', factory.user())
+            .catch(console.error)
         user2.email = 'cake.loves@yahoo.com'
-        mm.save(user1, user2)
-        expect(cap.je.mock.calls[0][0])
+        await mm.save(user1, user2)
+            .catch(console.error)
+        await expect(cap.je.mock.calls[0][0])
             .toEqual([{ id: user2.id, source: 'user', model: user2 }])
     })
 
-    test('saving a modified object changes state', () => {
+    test('saving a modified object changes state', async () => {
+        expect.assertions(1)
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping)
-        user = mm.get('user', factory.user())
+        let user = await mm.get('user', factory.user())
+            .catch(console.error)
         user.email = 'cake.loves@yahoo.com'
         const clone = Object.assign({}, user)
         clone.__state = mm._getState(user) // new state property after update
-        mm.save(user)
+        await mm.save(user)
+            .catch(console.error)
         expect(user).toEqual(clone)
     })
-
 })
 
 describe('delete', () => {
-    test('submitting models to delete removes them from the data source', () => {
+    test('submitting models to delete removes them from the data source', async () => {
+        expect.assertions(1)
+        let user1
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping)
-        user1 = mm.get('user', factory.user())
+        user1 = await mm.get('user', factory.user())
+            .catch(console.error)
         const key = user1.id
-        mm.delete(user1)
+        await mm.delete(user1)
+            .catch(console.error)
         expect(cap.je.mock.calls[0][0]).toEqual([{ key, source: 'user' }])
     })
 
-    test('submitting multiple models to delete removes them from the data source', () => {
+
+    test('submitting multiple models to delete removes them from the data source', async () => {
+        expect.assertions(1)
+        let user1, order
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping, OrderMapping)
-        user1 = mm.get('user', factory.user())
-        order = mm.get('order', factory.order())
+        user1 = await mm.get('user', factory.user())
+            .catch(console.error)
+        order = await mm.get('order', factory.order())
+            .catch(console.error)
         const userKey = user1.id
         const orderKey = order.id
-        mm.delete(user1, order)
+        await mm.delete(user1, order)
+            .catch(console.error)
         expect(cap.je.mock.calls[0][0])
             .toEqual([{ key: userKey, source: 'user' }, { key: orderKey, source: 'order' }])
+
     })
 
-    test('submitting models to delete removes erases the object', () => {
+    test('submitting models to delete removes erases the object', async () => {
+        expect.assertions(1)
+        let user1
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping)
-        user1 = mm.get('user', factory.user())
-        mm.delete(user1)
+        user1 = await mm.get('user', factory.user())
+        await mm.delete(user1)
+            .catch(console.error)
         expect(user1.id).toBe(null)
     })
 })
