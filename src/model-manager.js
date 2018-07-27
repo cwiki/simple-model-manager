@@ -26,6 +26,7 @@ class ModelManager {
      * converts args into model request.
      * Adds both UID and State stamps
      * @param {*} args 
+     * @return {*}}
      */
     async get(...args) {
         if (!this.storage.get) return
@@ -80,12 +81,12 @@ class ModelManager {
      */
     async delete(...models) {
         if (!this.storage.delete) return
+        
         this.storage.delete(...models.map(model => {
             let [source, id] = SimpleUUID.decode(model.__uuid)
-            if (id) {
-                return { source, key: id }
-            }
+            if (id) return { source, key: id }
         }))
+
         models.map(model => {
             model.id = null
             this.addPropFields(model)
@@ -96,14 +97,13 @@ class ModelManager {
      * Saves models by their UID else inserts the entries
      * Attempts to optimize the queries, by combining them into 
      * their respective source sets
-     * @param {*} models 
+     * @param {*} models
      */
     async save(...models) {
-        let finalArray = []
-        let updates = new Map()
-
         if (!this.storage.save) return
 
+        let finalArray = []
+        let updates = new Map()
 
         // model validation
         models.forEach(model => {
@@ -124,7 +124,6 @@ class ModelManager {
         updates.forEach((model) => {
             finalArray.push(this.storage.save(...model))
         })
-        return finalArray
     }
 
     /**

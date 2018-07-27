@@ -67,15 +67,13 @@ describe('get', () => {
         expect(cap.je.mock.calls[0][0]).toEqual({ source: 'user', key: 1, fields: ['cake', 'muffins'] })
     })
 
-    test('can create a object from meta data', () => {
+    test('can create a object from meta data', async () => {
         mm.register(UserMapping)
         cap.je.mockReturnValue('haiku')
         let newUser = { name: 'charlie' }
-        mm.get('user', newUser)
+        let user1 = await mm.get('user', newUser)
             .catch(console.error)
-            .then(data => {
-                expect(data).toEqual(Object.assign({ __uuid: 'dXNlcg==', __state: 3820375274, id: null }, newUser))
-            })
+        expect(user1).toEqual(Object.assign({ __uuid: 'dXNlcg==', __state: 3820375274, id: null }, newUser))
     })
 
     test('can create a uid from target config primary key', () => {
@@ -138,31 +136,27 @@ describe('register', () => {
 
 
 describe('save', () => {
-    test('a model can be saved to the respective source', () => {
+    test('a model can be saved to the respective source', async () => {
         expect.assertions(1)
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping)
-        mm.get('user', factory.user())
+        let user1 = await mm.get('user', factory.user())
             .catch(console.error)
-            .then(user1 => {
-                user1.name += '.change' // forces update
-                mm.save(user1)
-                expect(cap.je.mock.calls[0][0]).toEqual([{ id: user1.id, source: 'user', model: user1 }])
-            })
+        user1.name += '.change' // forces update
+        mm.save(user1)
+        expect(cap.je.mock.calls[0][0]).toEqual([{ id: user1.id, source: 'user', model: user1 }])
     })
 
-    test('a models fields not listed in register are removed', () => {
+    test('a models fields not listed in register are removed', async () => {
         expect.assertions(1)
         cap.je.mockReturnValue(Promise.resolve('haiku'))
         mm.register(UserMapping)
-        mm.get('user', factory.user())
+        let user1 = await mm.get('user', factory.user())
             .catch(console.error)
-            .then(user1 => {
-                const userMod = Object.assign({}, user1)
-                userMod.badField = 'bad'
-                mm.save(userMod).catch(console.error)
-                expect(userMod.badField).toEqual(undefined)
-            })
+        const userMod = Object.assign({}, user1)
+        userMod.badField = 'bad'
+        mm.save(userMod)
+        expect(userMod.badField).toEqual(undefined)
     })
 
     test('multiple models can be saved to the respective source', async () => {
@@ -175,9 +169,8 @@ describe('save', () => {
             .catch(console.error)
         user1.name += '.change' // forces update
         user2.name += '.change' // forces update
-        await mm.save(user1, user2)
-            .catch(console.error)
-        await expect(cap.je.mock.calls[0][0])
+        mm.save(user1, user2)
+        expect(cap.je.mock.calls[0][0])
             .toEqual([{ id: user1.id, source: 'user', model: user1 },
             { id: user2.id, source: 'user', model: user2 }])
     })
@@ -196,9 +189,8 @@ describe('save', () => {
         user1.name += '.change' // forces update
         user2.name += '.change' // forces update
         order.ticket += 1 // forces update
-        await mm.save(user1, user2, order)
-            .catch(console.error)
-        await expect(cap.je.mock.calls)
+        mm.save(user1, user2, order)
+        expect(cap.je.mock.calls)
             .toEqual(
                 [
                     [[{ id: user1.id, source: 'user', model: user1 },
@@ -218,9 +210,8 @@ describe('save', () => {
         user2 = await mm.get('user', factory.user())
             .catch(console.error)
         user2.email = 'cake.loves@yahoo.com'
-        await mm.save(user1, user2)
-            .catch(console.error)
-        await expect(cap.je.mock.calls[0][0])
+        mm.save(user1, user2)
+        expect(cap.je.mock.calls[0][0])
             .toEqual([{ id: user2.id, source: 'user', model: user2 }])
     })
 
@@ -233,8 +224,7 @@ describe('save', () => {
         user.email = 'cake.loves@yahoo.com'
         const clone = Object.assign({}, user)
         clone.__state = mm._getState(user) // new state property after update
-        await mm.save(user)
-            .catch(console.error)
+        mm.save(user)
         expect(user).toEqual(clone)
     })
 })
@@ -248,7 +238,7 @@ describe('delete', () => {
         user1 = await mm.get('user', factory.user())
             .catch(console.error)
         const key = user1.id
-        await mm.delete(user1)
+        mm.delete(user1)
             .catch(console.error)
         expect(cap.je.mock.calls[0][0]).toEqual([{ key, source: 'user' }])
     })
@@ -265,7 +255,7 @@ describe('delete', () => {
             .catch(console.error)
         const userKey = user1.id
         const orderKey = order.id
-        await mm.delete(user1, order)
+        mm.delete(user1, order)
             .catch(console.error)
         expect(cap.je.mock.calls[0][0])
             .toEqual([{ key: userKey, source: 'user' }, { key: orderKey, source: 'order' }])
@@ -278,7 +268,7 @@ describe('delete', () => {
         cap.je.mockReturnValue('haiku')
         mm.register(UserMapping)
         user1 = await mm.get('user', factory.user())
-        await mm.delete(user1)
+        mm.delete(user1)
             .catch(console.error)
         expect(user1.id).toBe(null)
     })
