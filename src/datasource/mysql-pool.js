@@ -29,7 +29,6 @@ class MysqlPool {
         models
             .filter(m => m.key === null)
             .forEach(insert => {
-                console.log(insert)
                 this.pool.query(`INSERT INTO ?? SET ?`, [insert.source, insert.model])
                     .catch(console.error)
                     .then(result => {
@@ -40,7 +39,6 @@ class MysqlPool {
         // update loop
         models.filter(m => m.key !== null)
             .forEach(insert => {
-                console.log(insert)
                 this.pool.query(`UPDATE ?? SET ? WHERE ?? = ?`,
                     [insert.source, insert.model, insert.primary, insert.key])
                     .catch(console.error)
@@ -52,9 +50,13 @@ class MysqlPool {
 
     delete(...models) {
         models = [].concat(models)
-        models.forEach(model => {
-
-        })
+        models.forEach(insert => {
+                this.pool.query(`DELETE FROM ?? WHERE ?? = ?`, [insert.source, insert.primary, insert.key])
+                    .catch(console.error)
+                    .then(result => {
+                        console.log(result)
+                    })
+            })
     }
 }
 
