@@ -81,10 +81,10 @@ class ModelManager {
      */
     async delete(...models) {
         if (!this.storage.delete) return
-        
+
         this.storage.delete(...models.map(model => {
             let [source, id] = SimpleUUID.decode(model.__uuid)
-            if (id) return { source, key: id }
+            if (id) return { source, key: id, primary: this.registry.get(source).__primary }
         }))
 
         models.map(model => {
@@ -100,22 +100,24 @@ class ModelManager {
      * @param {*} models
      */
     async save(...models) {
+        let finalArray, updates
+
         if (!this.storage.save) return
 
-        let finalArray = []
-        let updates = new Map()
+        finalArray = []
+        updates = new Map()
 
         // model validation
         models.forEach(model => {
             let [source, id] = SimpleUUID.decode(model.__uuid)
             this._modelFieldFilter(source, model)
             if (!id) id = null
-
-            const state = this._getState(model)
+            let state = this._getState(model)
 
             if (model.__state !== state) {
                 if (!updates.get(source)) updates.set(source, [])
-                updates.get(source).push({ source, id, model })
+                // need to add where?? or primary & fields
+                updates.get(source).push({ source, key: id, model, primary: this.registry.get(source).__primary })
                 // Updates state to the newest version
                 model.__state = state
             }

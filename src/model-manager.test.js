@@ -144,7 +144,7 @@ describe('save', () => {
             .catch(console.error)
         user1.name += '.change' // forces update
         mm.save(user1)
-        expect(cap.je.mock.calls[0][0]).toEqual([{ id: user1.id, source: 'user', model: user1 }])
+        expect(cap.je.mock.calls[0][0]).toEqual([{ key: user1.id, source: 'user', model: user1, primary: 'id' }])
     })
 
     test('a models fields not listed in register are removed', async () => {
@@ -171,8 +171,8 @@ describe('save', () => {
         user2.name += '.change' // forces update
         mm.save(user1, user2)
         expect(cap.je.mock.calls[0][0])
-            .toEqual([{ id: user1.id, source: 'user', model: user1 },
-            { id: user2.id, source: 'user', model: user2 }])
+            .toEqual([{ key: user1.id, source: 'user', model: user1, primary: 'id' },
+            { key: user2.id, source: 'user', model: user2, primary: 'id' }])
     })
 
     test('multiple models of different types can be saved to the respective source', async () => {
@@ -193,9 +193,9 @@ describe('save', () => {
         expect(cap.je.mock.calls)
             .toEqual(
                 [
-                    [[{ id: user1.id, source: 'user', model: user1 },
-                    { id: user2.id, source: 'user', model: user2 }]],
-                    [[{ id: order.id, source: 'order', model: order }]]
+                    [[{ key: user1.id, source: 'user', model: user1, primary: 'id' },
+                    { key: user2.id, source: 'user', model: user2, primary: 'id' }]],
+                    [[{ key: order.id, source: 'order', model: order, primary: 'id' }]]
                 ]
             )
     })
@@ -212,7 +212,7 @@ describe('save', () => {
         user2.email = 'cake.loves@yahoo.com'
         mm.save(user1, user2)
         expect(cap.je.mock.calls[0][0])
-            .toEqual([{ id: user2.id, source: 'user', model: user2 }])
+            .toEqual([{ key: user2.id, source: 'user', model: user2, primary: 'id' }])
     })
 
     test('saving a modified object changes state', async () => {
@@ -240,7 +240,7 @@ describe('delete', () => {
         const key = user1.id
         mm.delete(user1)
             .catch(console.error)
-        expect(cap.je.mock.calls[0][0]).toEqual([{ key, source: 'user' }])
+        expect(cap.je.mock.calls[0][0]).toEqual([{ key, source: 'user', primary: 'id' }])
     })
 
 
@@ -258,7 +258,7 @@ describe('delete', () => {
         mm.delete(user1, order)
             .catch(console.error)
         expect(cap.je.mock.calls[0][0])
-            .toEqual([{ key: userKey, source: 'user' }, { key: orderKey, source: 'order' }])
+            .toEqual([{ key: userKey, source: 'user', primary: 'id' }, { key: orderKey, source: 'order', primary: 'id' }])
 
     })
 

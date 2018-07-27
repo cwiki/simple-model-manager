@@ -16,18 +16,20 @@ class MysqlPool {
      * Usually you would get NULL if not exists
      * @param { source, key, fields } args 
      */
-    get(target) {
-        return this.pool.query('SELECT user_login FROM users WHERE user_id > ? LIMIT 2', [250])
-        // return await Promise.all([
-        //     pool.query('SELECT user_login FROM users WHERE user_id > ? LIMIT 2', [250]),
-        //     pool.query('SELECT user_login FROM users WHERE user_id > ? LIMIT 2', [260])
-        // ]).catch(err => { throw err })
+    async get(args) {
+        let queryString = `SELECT ?? FROM ?? WHERE user_id = ?`
+        const [data, fields] = await this.pool.query(queryString, [args.fields, args.source, [args.key]])
+            .catch(console.error)
+        return data
     }
 
     save(...models) {
         models = [].concat(models)
         models.forEach(model => {
-
+            let queryString = `INSERT INTO ?? VALUES ??`
+            const [data, fields] = await this.pool.query(queryString, [args.source, [args.key]])
+                .catch(console.error)
+            return data
         })
     }
 
