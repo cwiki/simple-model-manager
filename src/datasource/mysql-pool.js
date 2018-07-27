@@ -25,12 +25,29 @@ class MysqlPool {
 
     save(...models) {
         models = [].concat(models)
-        models.forEach(model => {
-            let queryString = `INSERT INTO ?? VALUES ??`
-            const [data, fields] = await this.pool.query(queryString, [args.source, [args.key]])
-                .catch(console.error)
-            return data
-        })
+        // insert loop
+        models
+            .filter(m => m.key === null)
+            .forEach(insert => {
+                console.log(insert)
+                this.pool.query(`INSERT INTO ?? SET ?`, [insert.source, insert.model])
+                    .catch(console.error)
+                    .then(result => {
+                        insert.model[insert.primary] = result.insertId
+                    })
+            })
+
+        // update loop
+        models.filter(m => m.key !== null)
+            .forEach(insert => {
+                console.log(insert)
+                this.pool.query(`UPDATE ?? SET ? WHERE ?? = ?`,
+                    [insert.source, insert.model, insert.primary, insert.key])
+                    .catch(console.error)
+                    .then(result => {
+                        console.log(result)
+                    })
+            })
     }
 
     delete(...models) {

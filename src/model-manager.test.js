@@ -224,7 +224,7 @@ describe('save', () => {
         user.email = 'cake.loves@yahoo.com'
         const clone = Object.assign({}, user)
         clone.__state = mm._getState(user) // new state property after update
-        mm.save(user)
+        await mm.save(user)
         expect(user).toEqual(clone)
     })
 })
@@ -239,7 +239,6 @@ describe('delete', () => {
             .catch(console.error)
         const key = user1.id
         mm.delete(user1)
-            .catch(console.error)
         expect(cap.je.mock.calls[0][0]).toEqual([{ key, source: 'user', primary: 'id' }])
     })
 
@@ -256,9 +255,9 @@ describe('delete', () => {
         const userKey = user1.id
         const orderKey = order.id
         mm.delete(user1, order)
-            .catch(console.error)
         expect(cap.je.mock.calls[0][0])
-            .toEqual([{ key: userKey, source: 'user', primary: 'id' }, { key: orderKey, source: 'order', primary: 'id' }])
+            .toEqual([{ key: userKey, source: 'user', primary: 'id' },
+            { key: orderKey, source: 'order', primary: 'id' }])
 
     })
 
@@ -269,7 +268,6 @@ describe('delete', () => {
         mm.register(UserMapping)
         user1 = await mm.get('user', factory.user())
         mm.delete(user1)
-            .catch(console.error)
         expect(user1.id).toBe(null)
     })
 })
